@@ -674,7 +674,7 @@ export interface IEditorInputWithOptions {
 }
 
 export function isEditorInputWithOptions(obj: any): obj is IEditorInputWithOptions {
-	const editorInputWithOptions = obj as IEditorInputWithOptions;
+	const editorInputWithOptions: IEditorInputWithOptions = obj;
 
 	return !!editorInputWithOptions && !!editorInputWithOptions.editor;
 }
@@ -937,7 +937,7 @@ export class EditorCommandsContextActionRunner extends ActionRunner {
 		super();
 	}
 
-	run(action: IAction, context?: any): Promise<void> {
+	run(action: IAction): Promise<void> {
 		return super.run(action, this.context);
 	}
 }

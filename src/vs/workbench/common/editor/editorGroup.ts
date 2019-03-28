@@ -48,7 +48,7 @@ export interface ISerializedEditorGroup {
 }
 
 export function isSerializedEditorGroup(obj?: any): obj is ISerializedEditorGroup {
-	const group = obj as ISerializedEditorGroup;
+	const group: ISerializedEditorGroup = obj;
 
 	return obj && typeof obj === 'object' && Array.isArray(group.editors) && Array.isArray(group.mru);
 }
@@ -140,7 +140,7 @@ export class EditorGroup extends Disposable {
 
 	getEditor(index: number): EditorInput | null;
 	getEditor(resource: URI): EditorInput | null;
-	getEditor(arg1: any): EditorInput | null {
+	getEditor(arg1: number | URI): EditorInput | null {
 		if (typeof arg1 === 'number') {
 			return this.editors[arg1];
 		}
@@ -501,7 +501,7 @@ export class EditorGroup extends Disposable {
 	private splice(index: number, del: boolean, editor?: EditorInput): void {
 		const editorToDeleteOrReplace = this.editors[index];
 
-		const args: any[] = [index, del ? 1 : 0];
+		const args: (number | EditorInput)[] = [index, del ? 1 : 0];
 		if (editor) {
 			args.push(editor);
 		}

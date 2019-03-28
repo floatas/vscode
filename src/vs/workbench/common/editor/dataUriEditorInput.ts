@@ -60,7 +60,7 @@ export class DataUriEditorInput extends EditorInput {
 	}
 
 	resolve(): Promise<BinaryEditorModel> {
-		return this.instantiationService.createInstance(BinaryEditorModel, this.resource, this.getName()).load().then(m => m as BinaryEditorModel);
+		return this.instantiationService.createInstance(BinaryEditorModel, this.resource, this.getName()).load();
 	}
 
 	matches(otherInput: any): boolean {

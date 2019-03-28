@@ -526,9 +526,9 @@ export class ElectronWindow extends Disposable {
 			const resource = URI.revive(p.fileUri);
 			let input: IResourceInput | IUntitledResourceInput;
 			if (isNew) {
-				input = { filePath: resource.fsPath, options: { pinned: true } } as IUntitledResourceInput;
+				input = { filePath: resource.fsPath, options: { pinned: true } };
 			} else {
-				input = { resource, options: { pinned: true } } as IResourceInput;
+				input = { resource, options: { pinned: true } };
 			}
 
 			if (!isNew && typeof p.lineNumber === 'number' && typeof p.columnNumber === 'number') {

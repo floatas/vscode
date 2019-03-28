@@ -88,7 +88,7 @@ class EditorRegistry implements IEditorRegistry {
 
 	registerEditor(descriptor: EditorDescriptor, editorInputDescriptor: SyncDescriptor<EditorInput>): void;
 	registerEditor(descriptor: EditorDescriptor, editorInputDescriptor: SyncDescriptor<EditorInput>[]): void;
-	registerEditor(descriptor: EditorDescriptor, editorInputDescriptor: any): void {
+	registerEditor(descriptor: EditorDescriptor, editorInputDescriptor: SyncDescriptor<EditorInput> | SyncDescriptor<EditorInput>[]): void {
 
 		// Support both non-array and array parameter
 		let inputDescriptors: SyncDescriptor<EditorInput>[] = [];
