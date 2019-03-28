@@ -122,7 +122,7 @@ export abstract class TitleControl extends Themable {
 	protected abstract handleBreadcrumbsEnablementChange(): void;
 
 	protected createEditorActionsToolBar(container: HTMLElement): void {
-		const context = { groupId: this.group.id } as IEditorCommandsContext;
+		const context: IEditorCommandsContext = { groupId: this.group.id };
 
 		this.editorActionsToolbar = this._register(new ToolBar(container, this.contextMenuService, {
 			actionItemProvider: action => this.actionItemProvider(action as Action),
@@ -302,7 +302,7 @@ export abstract class TitleControl extends Themable {
 		this.contextMenuService.showContextMenu({
 			getAnchor: () => anchor,
 			getActions: () => actions,
-			getActionsContext: () => ({ groupId: this.group.id, editorIndex: this.group.getIndexOfEditor(editor) } as IEditorCommandsContext),
+			getActionsContext: () => ({ groupId: this.group.id, editorIndex: this.group.getIndexOfEditor(editor) }),
 			getKeyBinding: (action) => this.getKeybinding(action),
 			onHide: () => {
 
