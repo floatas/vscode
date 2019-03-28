@@ -125,7 +125,7 @@ function setupIPC(accessor: ServicesAccessor): Promise<Server> {
 					// Show a warning dialog after some timeout if it takes long to talk to the other instance
 					// Skip this if we are running with --wait where it is expected that we wait for a while.
 					// Also skip when gathering diagnostics (--status) which can take a longer time.
-					let startupWarningDialogHandle: any;
+					let startupWarningDialogHandle: NodeJS.Timeout;
 					if (!environmentService.wait && !environmentService.status && !environmentService.args['upload-logs']) {
 						startupWarningDialogHandle = setTimeout(() => {
 							showStartupWarningDialog(
