@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event, Emitter } from 'vs/base/common/event';
-import { Extensions, IEditorInputFactoryRegistry, EditorInput, toResource, IEditorIdentifier, IEditorCloseEvent, GroupIdentifier, SideBySideEditorInput, CloseDirection } from 'vs/workbench/common/editor';
+import { Extensions, IEditorInputFactoryRegistry, EditorInput, toResource, IEditorIdentifier, IEditorCloseEvent, GroupIdentifier, SideBySideEditorInput, CloseDirection, IEditorInput } from 'vs/workbench/common/editor';
 import { URI } from 'vs/base/common/uri';
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
@@ -561,7 +561,7 @@ export class EditorGroup extends Disposable {
 		}
 	}
 
-	indexOf(candidate: EditorInput | null, editors = this.editors): number {
+	indexOf(candidate: IEditorInput | null, editors = this.editors): number {
 		if (!candidate) {
 			return -1;
 		}
@@ -614,7 +614,7 @@ export class EditorGroup extends Disposable {
 		this.mru.unshift(editor);
 	}
 
-	private matches(editorA: EditorInput | null, editorB: EditorInput | null): boolean {
+	private matches(editorA: IEditorInput | null, editorB: IEditorInput | null): boolean {
 		return !!editorA && !!editorB && editorA.matches(editorB);
 	}
 
