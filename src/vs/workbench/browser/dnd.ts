@@ -120,7 +120,7 @@ export function extractResources(e: DragEvent, externalOnly?: boolean): Array<ID
 		const rawCodeFiles = e.dataTransfer.getData(CodeDataTransfers.FILES);
 		if (rawCodeFiles) {
 			try {
-				const codeFiles = JSON.parse(rawCodeFiles) as string[];
+				const codeFiles: string[] = JSON.parse(rawCodeFiles);
 				codeFiles.forEach(codeFile => {
 					if (!resources.some(r => r.resource.fsPath === codeFile) /* prevent duplicates */) {
 						resources.push({ resource: URI.file(codeFile), isExternal: true });

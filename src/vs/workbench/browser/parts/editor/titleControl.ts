@@ -8,7 +8,7 @@ import { addDisposableListener, Dimension, EventType } from 'vs/base/browser/dom
 import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
 import { ActionsOrientation, IActionItem } from 'vs/base/browser/ui/actionbar/actionbar';
 import { ToolBar } from 'vs/base/browser/ui/toolbar/toolbar';
-import { Action, IAction, IRunEvent } from 'vs/base/common/actions';
+import { IAction, IRunEvent } from 'vs/base/common/actions';
 import * as arrays from 'vs/base/common/arrays';
 import { ResolvedKeybinding } from 'vs/base/common/keyCodes';
 import { dispose, IDisposable } from 'vs/base/common/lifecycle';
@@ -125,7 +125,7 @@ export abstract class TitleControl extends Themable {
 		const context: IEditorCommandsContext = { groupId: this.group.id };
 
 		this.editorActionsToolbar = this._register(new ToolBar(container, this.contextMenuService, {
-			actionItemProvider: action => this.actionItemProvider(action as Action),
+			actionItemProvider: action => this.actionItemProvider(action),
 			orientation: ActionsOrientation.HORIZONTAL,
 			ariaLabel: localize('araLabelEditorActions', "Editor actions"),
 			getKeyBinding: action => this.getKeybinding(action),
@@ -155,7 +155,7 @@ export abstract class TitleControl extends Themable {
 		}));
 	}
 
-	private actionItemProvider(action: Action): IActionItem | undefined {
+	private actionItemProvider(action: IAction): IActionItem | undefined {
 		const activeControl = this.group.activeControl;
 
 		// Check Active Editor

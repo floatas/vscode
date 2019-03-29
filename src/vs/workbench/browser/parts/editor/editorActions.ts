@@ -30,7 +30,7 @@ export class ExecuteCommandAction extends Action {
 		label: string,
 		private commandId: string,
 		private commandService: ICommandService,
-		private commandArgs?: any
+		private commandArgs?: unknown
 	) {
 		super(id, label);
 	}

@@ -316,7 +316,7 @@ function createServices(args: ParsedArgs, bufferLogService: BufferLogService): I
 	return new InstantiationService(services, true);
 }
 
-function initServices(environmentService: IEnvironmentService, stateService: StateService): Promise<any> {
+function initServices(environmentService: IEnvironmentService, stateService: StateService): Promise<unknown> {
 
 	// Ensure paths for environment service exist
 	const environmentServiceInitialization = Promise.all<boolean | undefined>([

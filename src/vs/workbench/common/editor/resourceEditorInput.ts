@@ -81,7 +81,7 @@ export class ResourceEditorInput extends EditorInput {
 		});
 	}
 
-	matches(otherInput: any): boolean {
+	matches(otherInput: unknown): boolean {
 		if (super.matches(otherInput) === true) {
 			return true;
 		}

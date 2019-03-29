@@ -53,7 +53,7 @@ import { IIssueService } from 'vs/platform/issue/common/issue';
 import { IssueChannel } from 'vs/platform/issue/node/issueIpc';
 import { IssueService } from 'vs/platform/issue/electron-main/issueService';
 import { LogLevelSetterChannel } from 'vs/platform/log/node/logIpc';
-import * as errors from 'vs/base/common/errors';
+import { setUnexpectedErrorHandler, onUnexpectedError } from 'vs/base/common/errors';
 import { ElectronURLListener } from 'vs/platform/url/electron-main/electronUrlListener';
 import { serve as serveDriver } from 'vs/platform/driver/electron-main/driver';
 import { connectRemoteAgentManagement, ManagementPersistentConnection, IConnectionOptions } from 'vs/platform/remote/common/remoteAgentConnection';
@@ -114,9 +114,9 @@ export class CodeApplication extends Disposable {
 	private registerListeners(): void {
 
 		// We handle uncaught exceptions here to prevent electron from opening a dialog to the user
-		errors.setUnexpectedErrorHandler(err => this.onUnexpectedError(err));
+		setUnexpectedErrorHandler(err => this.onUnexpectedError(err));
 		process.on('uncaughtException', err => this.onUnexpectedError(err));
-		process.on('unhandledRejection', (reason: any) => errors.onUnexpectedError(reason));
+		process.on('unhandledRejection', (reason: unknown) => onUnexpectedError(reason));
 
 		// Contextmenu via IPC support
 		registerContextMenuListener();
@@ -571,7 +571,7 @@ export class CodeApplication extends Disposable {
 		this.windowsMainService.ready(this.userEnv);
 
 		// Open our first window
-		const macOpenFiles = (<any>global).macOpenFiles as string[];
+		const macOpenFiles: string[] = (<any>global).macOpenFiles;
 		const context = !!process.env['VSCODE_CLI'] ? OpenContext.CLI : OpenContext.DESKTOP;
 		const hasCliArgs = hasArgs(args._);
 		const hasFolderURIs = hasArgs(args['folder-uri']);
@@ -769,7 +769,7 @@ export class CodeApplication extends Disposable {
 					callback(undefined);
 				}
 			} catch (err) {
-				errors.onUnexpectedError(err);
+				onUnexpectedError(err);
 				callback(undefined);
 			}
 		});

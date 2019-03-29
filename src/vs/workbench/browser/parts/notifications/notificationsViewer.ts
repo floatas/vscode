@@ -221,7 +221,7 @@ export class NotificationRenderer implements IListRenderer<INotificationViewItem
 				ariaLabel: localize('notificationActions', "Notification Actions"),
 				actionItemProvider: action => {
 					if (action && action instanceof ConfigureNotificationAction) {
-						const item = new DropdownMenuActionItem(action, action.configurationActions, this.contextMenuService, undefined, this.actionRunner, undefined, action.class as string);
+						const item = new DropdownMenuActionItem(action, action.configurationActions, this.contextMenuService, undefined, this.actionRunner, undefined, action.class);
 						data.toDispose.push(item);
 
 						return item;
