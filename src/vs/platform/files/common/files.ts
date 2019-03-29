@@ -802,7 +802,7 @@ export class FileOperationError extends Error {
 		super(message);
 	}
 
-	static isFileOperationError(obj: any): obj is FileOperationError {
+	static isFileOperationError(obj: unknown): obj is FileOperationError {
 		return obj instanceof Error && !isUndefinedOrNull((obj as FileOperationError).fileOperationResult);
 	}
 }

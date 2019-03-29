@@ -57,7 +57,7 @@ export interface IStorageMainService {
 	 * Store a string value under the given key to storage. The value will
 	 * be converted to a string.
 	 */
-	store(key: string, value: any): void;
+	store(key: string, value: string | boolean | number | undefined | null): void;
 
 	/**
 	 * Delete an element stored under the provided key from storage.
