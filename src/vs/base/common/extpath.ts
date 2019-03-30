@@ -269,9 +269,13 @@ export function isRootOrDriveLetter(path: string): boolean {
 	const pathNormalized = normalize(path);
 
 	if (isWindows) {
+		if (path.length > 3) {
+			return false;
+		}
+
 		return isWindowsDriveLetter(pathNormalized.charCodeAt(0))
 			&& pathNormalized.charCodeAt(1) === CharCode.Colon
-			&& (pathNormalized.charCodeAt(2) === CharCode.Backslash || path.length === 2);
+			&& (path.length === 2 || pathNormalized.charCodeAt(2) === CharCode.Backslash);
 	}
 
 	return pathNormalized === posix.sep;
