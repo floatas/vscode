@@ -382,7 +382,19 @@ export class ContributableViewsModel extends Disposable {
 			return 0;
 		}
 
-		return (this.getViewOrder(a) - this.getViewOrder(b)) || (a.id < b.id ? -1 : 1);
+		return (this.getViewOrder(a) - this.getViewOrder(b)) || this.getGroupOrderResult(a, b) || (a.id < b.id ? -1 : 1);
+	}
+
+	private getGroupOrderResult(a: IViewDescriptor, b: IViewDescriptor) {
+		if (!a.group || !b.group) {
+			return 0;
+		}
+
+		if (a.group === b.group) {
+			return 0;
+		}
+
+		return a.group < b.group ? -1 : 1;
 	}
 
 	private getViewOrder(viewDescriptor: IViewDescriptor): number {
@@ -510,9 +522,7 @@ export class PersistentContributableViewsModel extends ContributableViewsModel {
 	}
 
 	private saveWorkspaceViewsStates(): void {
-		const storedViewsStates: { [id: string]: IStoredWorkspaceViewState } = {};
-
-		let hasState = false;
+		const storedViewsStates: { [id: string]: IStoredWorkspaceViewState } = JSON.parse(this.storageService.get(this.workspaceViewsStateStorageId, StorageScope.WORKSPACE, '{}'));
 		for (const viewDescriptor of this.viewDescriptors) {
 			const viewState = this.viewStates.get(viewDescriptor.id);
 			if (viewState) {
@@ -522,11 +532,10 @@ export class PersistentContributableViewsModel extends ContributableViewsModel {
 					size: viewState.size,
 					order: viewDescriptor.workspace && viewState ? viewState.order : undefined
 				};
-				hasState = true;
 			}
 		}
 
-		if (hasState) {
+		if (Object.keys(storedViewsStates).length > 0) {
 			this.storageService.store(this.workspaceViewsStateStorageId, JSON.stringify(storedViewsStates), StorageScope.WORKSPACE);
 		} else {
 			this.storageService.remove(this.workspaceViewsStateStorageId, StorageScope.WORKSPACE);
@@ -626,7 +635,7 @@ export class PersistentContributableViewsModel extends ContributableViewsModel {
 
 export class ViewsService extends Disposable implements IViewsService {
 
-	_serviceBrand: ServiceIdentifier<any>;
+	_serviceBrand!: ServiceIdentifier<any>;
 
 	private readonly viewDescriptorCollections: Map<ViewContainer, { viewDescriptorCollection: IViewDescriptorCollection, disposable: IDisposable }>;
 	private readonly viewDisposable: Map<IViewDescriptor, IDisposable>;

@@ -51,13 +51,14 @@ import { withNullAsUndefined } from 'vs/base/common/types';
 import { IFileService, FileSystemProviderCapabilities } from 'vs/platform/files/common/files';
 import { equals } from 'vs/base/common/objects';
 import { dispose } from 'vs/base/common/lifecycle';
+import { timeout } from 'vs/base/common/async';
 
 export class ExplorerView extends ViewletPanel {
 	static readonly ID: string = 'workbench.explorer.fileView';
 	static readonly TREE_VIEW_STATE_STORAGE_KEY: string = 'workbench.explorer.treeViewState';
 
-	private tree: WorkbenchAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>;
-	private filter: FilesFilter;
+	private tree!: WorkbenchAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>;
+	private filter!: FilesFilter;
 
 	private resourceContext: ResourceContextKey;
 	private folderContext: IContextKey<boolean>;
@@ -70,7 +71,7 @@ export class ExplorerView extends ViewletPanel {
 
 	// Refresh is needed on the initial explorer open
 	private shouldRefresh = true;
-	private dragHandler: DelayedDragHandler;
+	private dragHandler!: DelayedDragHandler;
 	private autoReveal = false;
 
 	constructor(
@@ -244,8 +245,7 @@ export class ExplorerView extends ViewletPanel {
 			const activeFile = this.getActiveFile();
 			if (!activeFile && !focused[0].isDirectory) {
 				// Open the focused element in the editor if there is currently no file opened #67708
-				this.editorService.openEditor({ resource: focused[0].resource, options: { preserveFocus: true, revealIfVisible: true } })
-					.then(undefined, onUnexpectedError);
+				this.editorService.openEditor({ resource: focused[0].resource, options: { preserveFocus: true, revealIfVisible: true } });
 			}
 		}
 	}
@@ -306,7 +306,8 @@ export class ExplorerView extends ViewletPanel {
 				sorter: this.instantiationService.createInstance(FileSorter),
 				dnd: this.instantiationService.createInstance(FileDragAndDrop),
 				autoExpandSingleChildren: this.fileNestingEnabled ? false : true,
-				expandOnlyOnTwistieClick: this.fileNestingEnabled ? this.expandVirtualDirectoriesOnTwistie : false
+				expandOnlyOnTwistieClick: this.fileNestingEnabled ? this.expandVirtualDirectoriesOnTwistie : false,
+				additionalScrollHeight: ExplorerDelegate.ITEM_HEIGHT
 			});
 		this._register(this.tree);
 
@@ -547,6 +548,8 @@ export class ExplorerView extends ViewletPanel {
 
 		while (item && item.resource.toString() !== resource.toString()) {
 			await this.tree.expand(item);
+			// Tree returns too early from the expand, need to wait for next tick #77106
+			await timeout(0);
 			item = first(values(item.children), i => isEqualOrParent(resource, i.resource));
 		}
 

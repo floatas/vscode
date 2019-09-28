@@ -19,7 +19,7 @@ import { IExplorerService } from 'vs/workbench/contrib/files/common/files';
 
 export class ExplorerModel implements IDisposable {
 
-	private _roots: ExplorerItem[];
+	private _roots!: ExplorerItem[];
 	private _listener: IDisposable;
 	private _onDidChangeRoots = new Emitter<void>();
 
@@ -75,7 +75,7 @@ export class ExplorerModel implements IDisposable {
 
 export class ExplorerItem {
 	private _isDirectoryResolved: boolean;
-	public isError: boolean;
+	public isError = false;
 
 	public isVirtualDirectory: boolean;
 	public virtualDirectoryKey: string | null;
@@ -153,7 +153,7 @@ export class ExplorerItem {
 		return this === this.root;
 	}
 
-	static create(raw: IFileStat, parent: ExplorerItem | undefined, resolveTo?: URI[]): ExplorerItem {
+	static create(raw: IFileStat, parent: ExplorerItem | undefined, resolveTo?: readonly URI[]): ExplorerItem {
 		const stat = new ExplorerItem(raw.resource, parent, raw.isDirectory, raw.isSymbolicLink, raw.isReadonly, raw.name, raw.mtime);
 
 		// Recursively add children if present
@@ -252,9 +252,14 @@ export class ExplorerItem {
 			// Resolve metadata only when the mtime is needed since this can be expensive
 			// Mtime is only used when the sort order is 'modified'
 			const resolveMetadata = explorerService.sortOrder === 'modified';
-			const stat = await fileService.resolve(this.resource, { resolveSingleChildDescendants: true, resolveMetadata });
-			const resolved = ExplorerItem.create(stat, this);
-			ExplorerItem.mergeLocalWithDisk(resolved, this);
+			try {
+				const stat = await fileService.resolve(this.resource, { resolveSingleChildDescendants: true, resolveMetadata });
+				const resolved = ExplorerItem.create(stat, this);
+				ExplorerItem.mergeLocalWithDisk(resolved, this);
+			} catch (e) {
+				this.isError = true;
+				throw e;
+			}
 			this._isDirectoryResolved = true;
 		}
 
