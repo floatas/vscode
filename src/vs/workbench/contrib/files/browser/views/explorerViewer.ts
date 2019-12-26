@@ -70,7 +70,10 @@ export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
 }
 
 export const explorerRootErrorEmitter = new Emitter<URI>();
-export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | ExplorerItem[], ExplorerItem> {
+export class ExplorerDataSource extends Disposable implements IAsyncDataSource<ExplorerItem | ExplorerItem[], ExplorerItem> {
+
+	private nestingEnabled: boolean = false;
+	private nestingConfig: Map<string, string[]> = new Map<string, string[]>();
 
 	constructor(
 		@IProgressService private readonly progressService: IProgressService,
@@ -78,11 +81,16 @@ export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | Explo
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IFileService private readonly fileService: IFileService,
 		@IExplorerService private readonly explorerService: IExplorerService,
-		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService
-	) { }
+		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+		@IConfigurationService private readonly configurationService: IConfigurationService
+	) {
+		super();
+
+		this._register(this.configurationService.onDidChangeConfiguration(e => this.onConfigurationChange(this.configurationService.getValue<IFilesConfiguration>())));
+	}
 
 	hasChildren(element: ExplorerItem | ExplorerItem[]): boolean {
-		return Array.isArray(element) || element.isDirectory;
+		return Array.isArray(element) || element.isDirectory || element.isVirtualDirectory;
 	}
 
 	getChildren(element: ExplorerItem | ExplorerItem[]): Promise<ExplorerItem[]> {
@@ -91,7 +99,96 @@ export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | Explo
 		}
 
 		const sortOrder = this.explorerService.sortOrder;
-		const promise = element.fetchChildren(sortOrder).then(undefined, e => {
+		const promise = element.fetchChildren(sortOrder).then((children) => {
+			if (!this.nestingEnabled) {
+				children.forEach(child => {
+					child.isVirtualDirectory = false;
+					child.parentVirtualDirectoryKey = null;
+					child.virtualDirectoryKey = null;
+				});
+				return children;
+			}
+
+			let nestingPatterns = new Array<[string, string]>();
+			let virtualDirectories = new Map<string, ExplorerItem>();
+			const items: ExplorerItem[] = [];
+
+			if (element.isVirtualDirectory && element.parent) {
+				element.parent.children.forEach(child => {
+					let isMyChild = child.virtualDirectoryKey === element.name || child.parentVirtualDirectoryKey === element.name;
+					if (isMyChild) {
+						items.push(child);
+					}
+				});
+				return items;
+			}
+
+			//find all possible virtual directories and create regex patterns for them
+			children.forEach(child => {
+				if (child.isDirectory) {
+					return;
+				}
+
+				child.isVirtualDirectory = false;
+				child.parentVirtualDirectoryKey = null;
+				child.virtualDirectoryKey = null;
+
+				this.nestingConfig.forEach((childPatterns, parentPattern) => {
+					let parentName = this.getParentName(child.name, parentPattern);
+					if (parentName) {
+						childPatterns.forEach((pattern) => {
+							let childPattern = pattern.replace('$(basename)', parentName.name);
+							nestingPatterns.push([parentName.key, childPattern]);
+						});
+						//we will need to set isVirtualDirectory later, only if it has at least one child
+						virtualDirectories.set(parentName.key, child);
+					}
+				});
+			});
+
+			children.forEach(child => {
+				if (child.isDirectory) {
+					return;
+				}
+
+				for (let i = 0; i < nestingPatterns.length; i++) {
+					let childPattern = nestingPatterns[i][1];
+					let parentName = nestingPatterns[i][0];
+					let isChild = child.name.match(childPattern);
+					if (isChild) {
+						//is child AND virtual directory = nested virtual directory
+						if (child.isVirtualDirectory) {
+							child.parentVirtualDirectoryKey = parentName;
+							child.virtualDirectoryKey = null;
+						} else {
+							child.virtualDirectoryKey = parentName;
+							child.parentVirtualDirectoryKey = null;
+						}
+
+						//Show as virtual directory only if it has nested items inside
+						let virtualDir = virtualDirectories.get(parentName);//.isVirtualDirectory = true;
+						if (virtualDir) {
+							virtualDir.isVirtualDirectory = true;
+						}
+						break;
+					}
+				}
+			});
+
+			children.forEach(child => {
+				let isVirtualDirectory = child.isVirtualDirectory && !child.parentVirtualDirectoryKey;
+				let notPartOfNesting = !child.virtualDirectoryKey && !child.isVirtualDirectory;
+				if (child.isDirectory
+					|| isVirtualDirectory
+					|| notPartOfNesting
+				) {
+					items.push(child);
+				}
+			});
+
+			return items;
+
+		}, e => {
 
 			if (element instanceof ExplorerItem && element.isRoot) {
 				if (this.contextService.getWorkbenchState() === WorkbenchState.FOLDER) {
@@ -116,6 +213,33 @@ export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | Explo
 		}, _progress => promise);
 
 		return promise;
+	}
+
+	private onConfigurationChange(configuration: IFilesConfiguration): void {
+		this.nestingEnabled = configuration && configuration.files && configuration.files.nesting && configuration.files.nesting.enabled;
+
+		this.nestingConfig.clear();
+		let newNestingRules = configuration && configuration.files && configuration.files.nesting && configuration.files.nesting.rules;
+
+		if (newNestingRules) {
+			Object.keys(newNestingRules).forEach(element => {
+				this.nestingConfig.set(element, newNestingRules[element]);
+			});
+		}
+	}
+
+	private getParentName(item: string, parentPattern: string): any | null {
+		let parentNameMatch: any = item.match(parentPattern);//Incorrect definition
+
+		if (!parentNameMatch) {
+			return null;
+		}
+		let parentName = parentNameMatch.groups['basename'];
+		if (parentName) {
+			return { key: item, name: parentName };
+		}
+
+		return null;
 	}
 }
 

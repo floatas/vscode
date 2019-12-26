@@ -807,6 +807,12 @@ export interface IFilesConfiguration {
 		enableTrash: boolean;
 		hotExit: string;
 		preventSaveConflicts: boolean;
+		nesting: {
+			enabled: boolean;
+			rules: {
+				[glob: string]: string[];
+			};
+		};
 	};
 }
 

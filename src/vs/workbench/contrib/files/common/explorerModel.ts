@@ -81,6 +81,10 @@ export class ExplorerItem {
 	private _isDisposed: boolean;
 	public isError = false;
 
+	public isVirtualDirectory: boolean;
+	public virtualDirectoryKey: string | null;
+	public parentVirtualDirectoryKey: string | null;
+
 	constructor(
 		public resource: URI,
 		private readonly fileService: IFileService,
@@ -92,6 +96,7 @@ export class ExplorerItem {
 	) {
 		this._isDirectoryResolved = false;
 		this._isDisposed = false;
+		this.isVirtualDirectory = false;
 	}
 
 	get isDisposed(): boolean {
