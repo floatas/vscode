@@ -82,8 +82,8 @@ export class ExplorerItem {
 	public isError = false;
 
 	public isVirtualDirectory: boolean;
-	public virtualDirectoryKey: string | null;
-	public parentVirtualDirectoryKey: string | null;
+	public virtualDirectoryKey!: string | null;
+	public parentVirtualDirectoryKey!: string | null;
 
 	constructor(
 		public resource: URI,

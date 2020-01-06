@@ -95,8 +95,8 @@ export class ExplorerView extends ViewPane {
 	private renderer!: FilesRenderer;
 
 	private styleElement!: HTMLStyleElement;
-	private fileNestingRules: object;
-	private fileNestingEnabled: boolean;
+	private fileNestingRules!: object;
+	private fileNestingEnabled: boolean = false;
 	private compressedFocusContext: IContextKey<boolean>;
 	private compressedFocusFirstContext: IContextKey<boolean>;
 	private compressedFocusLastContext: IContextKey<boolean>;
