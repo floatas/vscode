@@ -1,3 +1,29 @@
+# Custom file nesting
+
+## After you enable file nesting, restart VS Code!
+Settings example:
+```
+  {
+      "files.nesting.enabled": true,
+      "files.nesting.rules": {
+          "(?<basename>.*)\\.ts$": [
+              "$(basename)\\.spec\\.ts$",
+          ],
+          "(?<basename>.*)\\.html$": [
+              "$(basename)\\.css$",
+              "$(basename)\\.scss$",
+          ]
+      }
+  }
+```
+<p align="center">
+  <img alt="VS Code in action" src="fileNestingPreview.PNG">
+</p>
+
+All changes are in this branch: https://github.com/floatas/vscode/tree/file-nesting
+
+---
+
 # Visual Studio Code - Open Source ("Code - OSS")
 [![Build Status](https://dev.azure.com/vscode/VSCode/_apis/build/status/VS%20Code?branchName=master)](https://aka.ms/vscode-builds)
 [![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
