@@ -51,6 +51,7 @@ import { SIDE_BAR_BACKGROUND } from 'vs/workbench/common/theme';
 import { IViewDescriptorService } from 'vs/workbench/common/views';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IUriIdentityService } from 'vs/workbench/services/uriIdentity/common/uriIdentity';
+import { equals } from 'vs/base/common/objects';
 
 interface IExplorerViewColors extends IColorMapping {
 	listDropBackground?: ColorValue | undefined;
@@ -121,6 +122,9 @@ export class ExplorerView extends ViewPane {
 
 	private tree!: WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>;
 	private filter!: FilesFilter;
+
+	private fileNestingRules!: object;
+	private fileNestingEnabled: boolean = false;
 
 	private resourceContext: ResourceContextKey;
 	private folderContext: IContextKey<boolean>;
@@ -243,6 +247,10 @@ export class ExplorerView extends ViewPane {
 	}
 
 	renderBody(container: HTMLElement): void {
+		// Update configuration
+		const configuration = this.configurationService.getValue<IFilesConfiguration>();
+		this.onConfigurationUpdated(configuration);
+
 		super.renderBody(container);
 
 		this.treeContainer = DOM.append(container, DOM.$('.explorer-folders-view'));
@@ -255,10 +263,6 @@ export class ExplorerView extends ViewPane {
 		this._register(this.labelService.onDidChangeFormatters(() => {
 			this._onDidChangeTitleArea.fire();
 		}));
-
-		// Update configuration
-		const configuration = this.configurationService.getValue<IFilesConfiguration>();
-		this.onConfigurationUpdated(configuration);
 
 		// When the explorer viewer is loaded, listen to changes to the editor input
 		this._register(this.editorService.onDidActiveEditorChange(() => {
@@ -401,8 +405,9 @@ export class ExplorerView extends ViewPane {
 			filter: this.filter,
 			sorter: this.instantiationService.createInstance(FileSorter),
 			dnd: this.instantiationService.createInstance(FileDragAndDrop),
-			autoExpandSingleChildren: true,
+			autoExpandSingleChildren: this.fileNestingEnabled ? false : true,
 			additionalScrollHeight: ExplorerDelegate.ITEM_HEIGHT,
+			expandOnlyOnTwistieClick: this.fileNestingEnabled ? this.expandVirtualDirectoriesOnTwistie : false,
 			overrideStyles: {
 				listBackground: SIDE_BAR_BACKGROUND
 			}
@@ -465,13 +470,35 @@ export class ExplorerView extends ViewPane {
 		}));
 	}
 
+	private expandVirtualDirectoriesOnTwistie(element: any) {
+		if (element instanceof ExplorerItem) {
+			return (element as ExplorerItem).isVirtualDirectory;
+		}
+		return true;
+	}
+
 	// React on events
 
 	private onConfigurationUpdated(configuration: IFilesConfiguration, event?: IConfigurationChangeEvent): void {
 		this.autoReveal = configuration?.explorer?.autoReveal;
 
+		let fileNestingRules = configuration && configuration.files && configuration.files.nesting && configuration.files.nesting.rules || {};
+		let fileNestingEnabled = configuration && configuration.files && configuration.files.nesting && configuration.files.nesting.enabled;
+
+		let needsRefresh = event && (event.affectsConfiguration('explorer.decorations.colors') || event.affectsConfiguration('explorer.decorations.badges'));
+
+		if (this.fileNestingEnabled !== fileNestingEnabled) {
+			this.fileNestingEnabled = fileNestingEnabled;
+			needsRefresh = true;
+		}
+
+		if (!equals(this.fileNestingRules, fileNestingRules)) {
+			this.fileNestingRules = fileNestingRules;
+			needsRefresh = true;
+		}
+
 		// Push down config updates to components of viewer
-		if (event && (event.affectsConfiguration('explorer.decorations.colors') || event.affectsConfiguration('explorer.decorations.badges'))) {
+		if (event && needsRefresh) {
 			this.refresh(true);
 		}
 	}

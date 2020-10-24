@@ -923,6 +923,12 @@ export interface IFilesConfiguration {
 		enableTrash: boolean;
 		hotExit: string;
 		saveConflictResolution: 'askUser' | 'overwriteFileOnDisk';
+		nesting: {
+			enabled: boolean;
+			rules: {
+				[glob: string]: string[];
+			};
+		};
 	};
 }
 

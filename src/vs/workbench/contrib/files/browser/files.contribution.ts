@@ -324,6 +324,15 @@ configurationRegistry.registerConfiguration({
 			'type': 'string',
 			'markdownDescription': nls.localize('defaultLanguage', "The default language mode that is assigned to new files. If configured to `${activeEditorLanguage}`, will use the language mode of the currently active text editor if any.")
 		},
+		'files.nesting.enabled': {
+			'type': 'boolean',
+			'description': nls.localize('fileNesting', "Enables file nesting based on naming"),
+			'default': false
+		},
+		'files.nesting.rules': {
+			'description': nls.localize('fileNestingRules', "File nesting rules. Property names are treated as globs. If a file matches a glob, then patterns are used to find files that should be nested under it."),
+			'type': 'object'
+		},
 		'files.maxMemoryForLargeFilesMB': {
 			'type': 'number',
 			'default': 4096,
